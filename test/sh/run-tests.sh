@@ -20,7 +20,7 @@ source $COMMON_HELPERS
 [ -z "$TEST_SHELLS" ]       && export TEST_SHELLS="bash zsh"
 [ -z "$TEST_DIR" ]          && export TEST_DIR="$SCRIPT_DIR/tests"
 [ -z "$CHESTER" ]           && export CHESTER="$SCRIPT_DIR/chester"
-[ -z "$DNX_FEED" ]          && export DNX_FEED="https://www.myget.org/F/aspnetrelease/api/v2" # doesn't really matter what the feed is, just that it is a feed
+[ -z "$DNX_FEED" ]          && export DNX_FEED="https://www.myget.org/F/aspnetvnext/api/v2" # doesn't really matter what the feed is, just that it is a feed
 [ -z "$TEST_APPS_DIR" ]     && export TEST_APPS_DIR="$REPO_ROOT/test/apps"
 
 export DNX_FEED
