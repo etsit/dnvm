@@ -67,14 +67,37 @@ __dnvm_current_os()
     fi
 }
 
+__dnvm_os_runtime_defaults()
+{
+    local os=$1
+
+    if [[ $os == "win" ]]; then
+        echo "clr"
+    elif [[ $os == "linux" ]]; then
+        echo "mono"
+    elif [[ $os == "darwin" ]]; then
+        echo "mono"
+    else
+        echo "unknown os"
+    fi
+}
+
+__dnvm_runtime_bitness_defaults()
+{
+    local runtime=$1
+    if [[ $runtime == "clr" ]]; then
+        echo "x86"
+    elif [[ $runtime == "coreclr" ]]; then
+        echo "x64"
+    else
+        echo "unknown runtime"
+    fi
+}
+
 __dnvm_find_latest() {
     local platform=$1
     local arch=$2
     local os=$3
-
-    if [ -z $platform ]; then
-        local platform="mono"
-    fi
 
     if ! __dnvm_has "curl"; then
         printf "%b\n" "${Red}$_DNVM_COMMAND_NAME needs curl to proceed. ${RCol}" >&2;
@@ -88,10 +111,12 @@ __dnvm_find_latest() {
         #dnx-coreclr-linux-x64
         local packageId="$_DNVM_RUNTIME_PACKAGE_NAME-$platform-$os-$arch"
     fi
+
     local url="$DNX_ACTIVE_FEED/GetUpdates()?packageIds=%27$packageId%27&versions=%270.0%27&includePrerelease=true&includeAllVersions=false"
     xml="$(curl $url 2>/dev/null)"
     echo $xml | grep \<[a-zA-Z]:Version\>* >> /dev/null || return 1
     version="$(echo $xml | sed 's/.*<[a-zA-Z]:Version>\([^<]*\).*/\1/')"
+
     echo $version
 }
 
@@ -406,9 +431,9 @@ dnvm()
             local alias=
             local force=
             local unstable=
-            local os=$(__dnvm_current_os)
-            local runtime="mono"
-            local arch="x64"
+            local os=
+            local runtime=
+            local arch=
             while [ $# -ne 0 ]
             do
                 if [[ $1 == "-p" || $1 == "-persistent" ]]; then
@@ -461,6 +486,21 @@ dnvm()
                 else
                     printf "%b\n" "${Yel}Default unstable feed ($_DNVM_DEFAULT_UNSTABLE_FEED) is being overridden by the value of the DNX_UNSTABLE_FEED variable ($DNX_UNSTABLE_FEED). ${RCol}"
                 fi
+            fi
+
+            if [[ -z $os ]]; then
+                os=$(__dnvm_current_os)
+            fi
+            if [[ $os == "osx" ]]; then
+                os="darwin"
+            fi
+
+            if [[ -z $runtime ]]; then
+                runtime=$(__dnvm_os_runtime_defaults "$os")
+            fi
+
+            if [[ -z $arch ]]; then
+                arch=$(__dnvm_runtime_bitness_defaults "$runtime")
             fi
 
             if [[ $runtime == "mono" ]] && ! __dnvm_has "mono"; then
